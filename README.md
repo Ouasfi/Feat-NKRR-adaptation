@@ -1,5 +1,4 @@
 # Feat.NKRR-adaptation
-[NeurIPS'23] "Robustifying Generalizable Implicit Shape Networks with a Tunable Non-Parametric Model"
 
 ![Teaser Image](teaser.jpg)
 
@@ -48,6 +47,35 @@ We provide support for the following datasets:
 
 **Usage**
 ---------
+
+
+
+# Getting Started
+
+## Clone the Repository
+
+To clone the repository, run the following command:
+
+```bash
+git clone git@github.com:Ouasfi/Feat-NKRR-adaptation.git
+```
+
+## Set up the Conda Environment
+
+To set up the Conda environment, navigate to the cloned repository and run the following command:
+
+```bash
+conda env create -f environment.yml
+```
+
+This will create a new Conda environment named `FNKRR` (as specified in the `environment.yml` file) with all the required dependencies.
+
+To activate the environment, run:
+
+```bash
+conda activate FNKRR
+```
+
 The `example.py`  script that sets up a reconstruction pipeline using the `ReconstructionPipeline` class from the `runner` module. Here's an example of how to use this file:
 
 #### Command Line Arguments
