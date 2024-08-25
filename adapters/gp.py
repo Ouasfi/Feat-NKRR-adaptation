@@ -2,7 +2,7 @@ import torch
 import gpytorch
 from gpytorch.kernels import RBFKernel, ScaleKernel,InducingPointKernel
 from gpytorch.kernels.keops import RBFKernel
-from gpytorch.kernels import ScaleKernel, RBFKernel, ProductStructureKernel, GridInterpolationKernel,LinearKernel
+from gpytorch.kernels import ScaleKernel, RBFKernel
 def get_field_volume(model,likelihood, split_feature_volume,resolution = 128 ):
     model.eval()
     likelihood.eval()

@@ -13,12 +13,11 @@ parser = opts.krr_opts()
 args = parser.parse_args()
 
 # set the root directory for the dataset
-#args.root = "/home/amine/data/ShapeNet/"
-args.root = "/home/amine/NAS1/CVPR23/data/"
 
 # read the shape names from the split file
-split_file = open(f'{args.root}/{args.classe}/{args.split_file}', 'r').readlines()
-args.shape = [shape.strip() for shape in split_file][args.id]
+#split_file = open(f'{args.root}/{args.classe}/{args.split_file}', 'r').readlines()
+#args.shape = [shape.strip() for shape in split_file][args.id]
+
 print(args.shape)
 # set the seed for random number generation
 set_all_seeds(0)
@@ -29,7 +28,7 @@ resolution = 128
 # create the reconstruction pipeline
 pipeline = ReconstructionPipeline(args)
 
-# run the reconstruction pipeline
+# run the reconstruction pipeline with the backbone model
 mesh, df = pipeline.run(resolution)
 
 # prepare the dataset for KRR
@@ -48,7 +47,7 @@ df_krr = pipeline.evaluate_reconstruction(mesh_kernel)
 cd1_gt, nkrr_adapter = pipeline.run_nkrr_adaptation(feature_volume, X_nystrom, X_train, Y_train, epochs=50)
 
 final_resolution = 128
-if final_resolution != resolution:
+if final_resolution != resolution: #if the resolution used for validation (to select the best epoch) is different from the final resolution. When compararing to the backbone model, the resolution should be the same.
     print("computing grid points")
     grid_points = Reconstructor.get_mc_points(final_resolution, bounds=(-0.5, 0.5), batch_points=100000)
     print("Computing feature volume")

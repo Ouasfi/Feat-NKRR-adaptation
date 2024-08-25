@@ -2,17 +2,9 @@ import mcubes
 import numpy as np
 import torch
 import open3d as o3d
-
-import functools
-from poco import model as poco
-
-# Define the decorator with size argument
-from diso import DiffMC
-from diso import DiffDMC
-from diso._C import CUMCFloat as mcf
-from diso  import _C 
-import torch.nn.functional as F ;
+from diso import DiffMC#,DiffDMC
 from mise import MISE
+
 def CUMC (field_volume,threshold):
     diffdmc = DiffMC(dtype=torch.float32)
     vertices, triangles = diffdmc (
@@ -25,6 +17,18 @@ class Field:
     def __init__(self, model, inputs,  
                  encode_method = "get_latent",
                  output_transform = lambda x :x):
+        """
+        Initializes a Field object that takes query points interpolate their features and decode there sdf/occupancy values.
+
+        Args:
+            model: The model to be used for encoding inputs.
+            inputs: The inputs to be encoded.
+            encode_method (str): The method to be used for encoding inputs. Defaults to "get_latent".
+            output_transform (function): A function to be applied to the output of the model. Defaults to the identity function.
+
+        Returns:
+            None
+        """
         super().__init__()
         self.model = model
         self.output_transform = output_transform
@@ -34,15 +38,47 @@ class Field:
         return self.output_transform (outputs)
 class Reconstructor:
     def __init__(self, field):
+        """
+        Initializes a Reconstructor object that takes a field object and uses it to run Marching cubes.
+
+        Args:
+            field: The field object to be used for reconstruction.
+        """
         self.field = field
     @torch.no_grad()
     def __call__(self,threshold, resolution = 128, bounds = (-0.5, 0.5) , batch_points =  50000, mc_device = 'cpu'):
+         """
+         Performs reconstruction using the provided threshold and parameters.
+
+         Args:
+             threshold (float): The threshold value used for reconstruction.
+             resolution (int, optional): The resolution of the grid points. Defaults to 128.
+             bounds (tuple, optional): The bounds of the grid points. Defaults to (-0.5, 0.5).
+             batch_points (int, optional): The number of batch points. Defaults to 50000.
+             mc_device (str, optional): The device used for Marching cubes. Defaults to 'cpu'.
+
+         Returns:
+             The reconstructed mesh.
+         """
          grid_points_split = self.get_mc_points(resolution, bounds , batch_points )
          field_volume = self.compute_field_volume(grid_points_split, resolution,mc_device = mc_device)
          mesh = self.run_mc (field_volume, threshold, resolution ,  bounds,mc_device = mc_device )
          return mesh
     @staticmethod
     def  run_mc (field_volume, threshold, resolution = 128, bounds = (-0.5, 0.5) ,mc_device = 'cpu'):
+            """
+            Runs the Marching Cubes algorithm to generate a mesh from a given field volume.
+
+            Args:
+                field_volume (numpy.ndarray): The input field volume.
+                threshold (float): The threshold value used for reconstruction.
+                resolution (int, optional): The resolution of the grid points. Defaults to 128.
+                bounds (tuple, optional): The bounds of the grid points. Defaults to (-0.5, 0.5).
+                mc_device (str, optional): The device used for Marching cubes. Defaults to 'cpu'.
+
+            Returns:
+                pred_mesh (o3d.geometry.TriangleMesh): The reconstructed mesh.
+            """
             min, max = bounds
             threshold = np.log(threshold) - np.log(1. - threshold)
             mc_fn =  CUMC if mc_device =='cuda' else mcubes.marching_cubes
@@ -80,10 +116,7 @@ class Reconstructor:
 
             grid_points = Reconstructor.create_grid_points(min, max, resolution)
             grid_coords = grid_points
-            #grid_points[:, 0], grid_points[:, 2] = grid_points[:, 2], grid_points[:, 0].copy()
-            #)
-            #grid_coords = 2 * grid_points - a
-            #grid_coords = grid_coords / b
+
             grid_coords = torch.from_numpy(grid_coords).to(device, dtype=torch.float32)
             grid_coords = torch.reshape(grid_coords, (1, len(grid_points), 3)).to(device)
             grid_points_split =    torch.split(grid_coords, batch_points, dim=1)

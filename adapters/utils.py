@@ -2,6 +2,8 @@ import torch
 from pykeops.torch import Genred
 import random
 import numpy as np
+import trimesh
+import open3d as o3d
 def init_args(args, X_nystrom):
     class Args :
         #sigma = torch.tensor([args.sigma] * X_nystrom.shape[1], dtype=torch.float32).cuda()

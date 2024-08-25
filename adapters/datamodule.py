@@ -1,9 +1,9 @@
-## Backbone features
-### POCO
+
 import contextlib
 import numpy as np
 import torch
 from scipy.spatial import cKDTree #as KDTree
+import torch.nn.functional as F
 import os
 class DataModule:
     def __init__(self, field,feat_ctx, feat_fn ):
@@ -98,11 +98,7 @@ class DataModule:
         sigmas = ptree.query(pos_np,51, workers = 20)[0][:,-1]
         scale= sigmas.mean()
         sdfs = scale/51* (2*torch.rand(n_local_queries,1,N)-1).to(pos.device)
-        #normals = bilateral_filter(pos.data.squeeze(0).transpose(0,1), normals.data.squeeze(0).transpose(0,1), sigma_spatial= 0.01, sigma_normal=0.005)
-        #normals= normals.data.transpose(0,1).unsqueeze(0)
         queries = pos.detach() + sdfs * normals.detach()
-        #points = np.expand_dims(pos,1)  + 1*np.expand_dims(sigmas,(1,-1)) * rng.normal(0.0, 1.0, size= (N, n_local_queries,3) )
-        #points = points.reshape(-1,3)
         queries = queries.transpose(1,2).view(-1,3)
         field.latents[query_key] =  queries.transpose(0,1).unsqueeze(0) #torch.from_numpy(points.astype(np.float32)).transpose(0,1).unsqueeze(0)
         sdfs = sdfs.squeeze(1).flatten()
@@ -258,7 +254,7 @@ def compute_features_convonet(field,feat_ctx, query_key = 'pos_non_manifold',  *
     features = f_i[0][0] 
 
     return features, outputs, features.size(1)
-import torch.nn.functional as F
+
 def normalize_features(features):
     """
     Normalizes a given set of features by subtracting the mean along the second dimension.
