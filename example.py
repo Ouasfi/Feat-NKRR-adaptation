@@ -15,8 +15,8 @@ args = parser.parse_args()
 # set the root directory for the dataset
 
 # read the shape names from the split file
-#split_file = open(f'{args.root}/{args.classe}/{args.split_file}', 'r').readlines()
-#args.shape = [shape.strip() for shape in split_file][args.id]
+split_file = open(f'{args.root}/{args.classe}/{args.split_file}', 'r').readlines()
+args.shape = [shape.strip() for shape in split_file][args.id]
 
 print(args.shape)
 # set the seed for random number generation
